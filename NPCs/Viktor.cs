@@ -13,11 +13,14 @@ namespace Additions.Characters
 		static float decreasePerNotebook = 1f;
 		static float slapTime = 0.7f;
 		static float slapSpeed = 30f;
+		static float quietSlapSpeed = slapSpeed * 0.75f;
+		static float quietSlapTime = slapTime * 1.90f;
 		private float extraAnger = 0f;
 		private bool angry = false;
 		private bool firstJacketTriggered = false;
 		private Vector3 closetLocation;
 		private bool isJacketDirty = false;
+		private bool isQuiet = false;
 		public static class Sprites
 		{
 			static readonly float PIXEL_PER_UNIT = 16f;
@@ -29,8 +32,9 @@ namespace Additions.Characters
 			public static SoundObject intro = AssetManager.LoadSoundObject("viktor/intro.ogg", AudioType.OGGVORBIS, soundType:SoundType.Voice);
 			public static SoundObject school = AssetManager.LoadSoundObject("viktor/school.ogg", AudioType.OGGVORBIS, soundType: SoundType.Music);
 			public static SoundObject walk = AssetManager.LoadSoundObject("viktor/walk.ogg", AudioType.OGGVORBIS, "*footsteps*");
-			public static SoundObject scream = AssetManager.LoadSoundObject("viktor/scream.ogg", AudioType.OGGVORBIS);
-			public static SoundObject youshouldnt = AssetManager.LoadSoundObject("viktor/youshouldnt.ogg", AudioType.OGGVORBIS, soundType: SoundType.Voice);
+            public static SoundObject scream = AssetManager.LoadSoundObject("viktor/scream.ogg", AudioType.OGGVORBIS);
+            public static SoundObject hardmode = AssetManager.LoadSoundObject("viktor/hardmode.ogg", AudioType.OGGVORBIS);
+            public static SoundObject youshouldnt = AssetManager.LoadSoundObject("viktor/youshouldnt.ogg", AudioType.OGGVORBIS, soundType: SoundType.Voice);
 			public static SoundObject firstjacket = AssetManager.LoadSoundObject("viktor/jacket0.ogg", AudioType.OGGVORBIS, soundType: SoundType.Voice);
 			public static SoundObject[] jackets = new SoundObject[]
 			{
@@ -42,10 +46,10 @@ namespace Additions.Characters
 		}
 		private IEnumerator Slap()
 		{
-			audMan.PlaySingle(Sounds.walk);
-			navigator.SetSpeed(slapSpeed);
+			if (!isQuiet) audMan.PlaySingle(Sounds.walk);
+			navigator.SetSpeed(isQuiet ? quietSlapSpeed : slapSpeed );
 
-			var time = slapTime;
+			var time = isQuiet ? quietSlapTime : slapTime;
 			while (time > 0) {
 				time -= Time.deltaTime * ec.NpcTimeScale;
 				TargetPlayer(players[0].transform.position);
@@ -59,7 +63,7 @@ namespace Additions.Characters
 		}
 		private IEnumerator SlapLoop()
 		{
-			var time = minimumSlapDelay + decreasePerNotebook * ec.notebookTotal - Mod.Manager.manager.FoundNotebooks * decreasePerNotebook - extraAnger;
+			var time = minimumSlapDelay + decreasePerNotebook * ec.notebookTotal - Mod.Manager.gameManager.FoundNotebooks * decreasePerNotebook - extraAnger;
 			Console.WriteLine(time);
 			while (time > 0)
 			{
@@ -69,7 +73,7 @@ namespace Additions.Characters
 			StartCoroutine(Slap());
 			yield break;
 		}
-		public new void Awake()
+		public override void Awake()
 		{
 			base.Awake();
 			transform.Find("SpriteBase").localPosition += new Vector3(0, -0.8f + 1.4f, 0);
@@ -149,6 +153,14 @@ namespace Additions.Characters
 			StartCoroutine(SlapLoop());
 			yield break;
 		}
+		public void BeQuiet()
+		{
+			if (!isQuiet)
+			{
+                isQuiet = true;
+                ec.audMan.PlaySingle(Sounds.hardmode);
+            }
+        }
 		public override void ChalkEraserUsed(Vector3 position)
 		{
 			if (Vector3.Distance(position, transform.position) <= 30f)
@@ -165,7 +177,13 @@ namespace Additions.Characters
 			if (Singleton<CoreGameManager>.Instance.currentMode == Mode.Free)
 				return;
 			if (angry)
-				return;
+			{
+                if (Mod.Manager.gameManager.foundNotebooks >= ec.notebookTotal * 0.75)
+                {
+                    BeQuiet();
+                }
+                return;
+            }
 			angry = true;
 			StopAllCoroutines();
 			StartCoroutine(GetMad());

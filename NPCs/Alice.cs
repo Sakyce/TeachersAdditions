@@ -20,6 +20,7 @@ namespace Additions.Characters
 		private int walkAnimationFrame = 0;
 		private float walkSpeed = 16f;
 		private AnimState currentAnimation = AnimState.normal;
+		
 		public enum AnimState
 		{
 			normal,
@@ -32,8 +33,9 @@ namespace Additions.Characters
 			public static SoundObject school = AssetManager.LoadSoundObject("alice/school.mp3", AudioType.MPEG, soundType: SoundType.Music);
 			public static SoundObject transform1 = AssetManager.LoadSoundObject("alice/transform1.ogg", AudioType.OGGVORBIS, soundType: SoundType.Voice);
 			public static SoundObject transform2 = AssetManager.LoadSoundObject("alice/transform2.ogg", AudioType.OGGVORBIS, soundType: SoundType.Voice);
-			public static SoundObject scare = AssetManager.LoadSoundObject("alice/jumpscare.ogg", AudioType.OGGVORBIS, soundType: SoundType.Voice);
-			public static SoundObject[] quotes = new SoundObject[13];
+            public static SoundObject scare = AssetManager.LoadSoundObject("alice/jumpscare.ogg", AudioType.OGGVORBIS, soundType: SoundType.Voice);
+            public static SoundObject clock = AssetManager.LoadSoundObject("alice/clock.ogg", AudioType.OGGVORBIS, soundType: SoundType.Effect);
+            public static SoundObject[] quotes = new SoundObject[13];
 			private static bool quotesLoaded = false;
 			public static void LoadQuotes()
 			{
@@ -60,7 +62,7 @@ namespace Additions.Characters
 				AssetManager.LoadSprite("alice/walk4.png", PIXEL_PER_UNIT)
 			};
 		}
-		public new void Awake()
+		public override void Awake()
 		{
 			base.Awake();
 			transform.Find("SpriteBase").localPosition += new Vector3(0, -0.8f + 1.4f, 0);
@@ -74,7 +76,7 @@ namespace Additions.Characters
 
 			audMan.audioDevice.maxDistance *= 4;
 			audMan.volumeModifier = 2f;
-		}
+        }
 		public void Update()
 		{
 
@@ -147,6 +149,20 @@ namespace Additions.Characters
 				StartCoroutine(StunSequence());
 			}
 		}
+
+		private IEnumerator TeleportToNearestDoorTimer() {
+            var time = 36f;
+            while (time > 0)
+            {
+                time -= Time.deltaTime * ec.NpcTimeScale;
+                yield return null;
+            }
+			ec.audMan.PlaySingle(Sounds.clock);
+			yield return new WaitForSecondsRealtime(4);
+            TeleportToNearestDoor();
+			StartCoroutine(TeleportToNearestDoorTimer());
+			isWandering = false;
+        }
 		private IEnumerator GetMad()
 		{
 			ec.audMan.FlushQueue(true);
@@ -161,7 +177,9 @@ namespace Additions.Characters
 			BeginSpoopMode();
 			SetKillable(true, Sounds.scare);
 			isAngry = true;
-			yield break;
+            StartCoroutine(TeleportToNearestDoorTimer());
+
+            yield break;
 		}
 		public override void NotebookCollected()
 		{

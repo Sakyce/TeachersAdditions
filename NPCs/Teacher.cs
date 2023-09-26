@@ -46,13 +46,64 @@ namespace Additions.Characters
 			ec.GetBaldi()?.Despawn();
 			this.ec.StartEventTimers();
 		}
-		
-	}
+		public virtual new void Awake()
+		{
+			base.Awake();
+            allTilesCache = ec.AllTiles();
+        }
+
+        /* shared code between some teachers */
+        private List<TileController> allTilesCache;
+        public (Door, TileController) TeleportToNearestDoor()
+        {
+            var playerPos = ec.players[0].transform.position;
+            Door? nearestDoor = null;
+            var nearest = float.PositiveInfinity;
+
+            // obtenir la porte la plus proche
+            foreach (var tile in allTilesCache)
+            {
+                foreach (var door in tile.doors)
+                {
+                    var distance = (door.transform.position - playerPos).magnitude;
+                    print("distance");
+                    if (distance <= nearest)
+                    {
+                        nearestDoor = door;
+                        nearest = distance;
+                    }
+                }
+            }
+
+            if (nearestDoor == null)
+            {
+                throw new Exception("Wtff no nearest door wtf ????");
+            }
+
+            // obtenir le côté le plus loin
+            Vector3 teleportPosition;
+			TileController side;
+            if ((nearestDoor.aTile.transform.position - playerPos).magnitude < (nearestDoor.bTile.transform.position - playerPos).magnitude)
+            {
+                side = nearestDoor.bTile;
+                teleportPosition = nearestDoor.bTile.transform.position;
+            }
+            else
+            {
+                side = nearestDoor.aTile;
+                teleportPosition = nearestDoor.aTile.transform.position;
+            }
+            transform.position = teleportPosition + Vector3.up * 5f;
+            TargetPlayer(players[0].transform.position);
+			return (nearestDoor, side);
+        }
+    }
 	public enum Teachers
 	{
 		Baldi,
 		Foxo,
 		Viktor,
-		Alice
+		Alice,
+		Null
 	}
 }

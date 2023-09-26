@@ -10,7 +10,7 @@ namespace Additions
 {
 	public class Manager : MonoBehaviour
 	{
-		public BaseGameManager manager;
+		public BaseGameManager gameManager;
 		public CoreGameManager coremanager;
 		public EnvironmentController ec;
 		public bool initialized;
@@ -20,7 +20,7 @@ namespace Additions
 		public TimeScaleModifier? clockModifier;
 		public virtual void Initialize(BaseGameManager __manager)
 		{
-			manager = __manager;
+			gameManager = __manager;
 			coremanager = Singleton<CoreGameManager>.Instance;
 			ec = __manager.Ec;
 			initialized = true;
@@ -39,6 +39,9 @@ namespace Additions
 					break;
 				case Teachers.Alice:
 					SpawnTeacher(new NPCBuilder<Alice, Beans>().Make());
+					break;
+				case Teachers.Null:
+					SpawnTeacher(new NPCBuilder<NullTeacher, Beans>().Make());
 					break;
 			}
 		}

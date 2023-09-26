@@ -40,7 +40,7 @@ namespace Additions.Patches
 		{
 			void postfixAction()
 			{
-				switch (__instance.controlledRNG.Next(1, 4)) // Baldi will be included later uwu don't worry
+				switch (1/*__instance.controlledRNG.Next(1, 4)*/) // Baldi will be included later uwu don't worry
 				{
 					case 0:
 						Mod.NextTeacher = Teachers.Baldi;
@@ -53,6 +53,9 @@ namespace Additions.Patches
 						break;
 					case 3:
 						Mod.NextTeacher = Teachers.Alice;
+						break;
+					case 4:
+						Mod.NextTeacher = Teachers.Null;
 						break;
 				}
 			}
