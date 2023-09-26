@@ -40,7 +40,7 @@ namespace Additions.Patches
 		{
 			void postfixAction()
 			{
-				switch (1/*__instance.controlledRNG.Next(1, 4)*/) // Baldi will be included later uwu don't worry
+				switch (__instance.controlledRNG.Next(1, 4)) // Baldi will be included later uwu don't worry
 				{
 					case 0:
 						Mod.NextTeacher = Teachers.Baldi;
@@ -59,6 +59,7 @@ namespace Additions.Patches
 						break;
 				}
 			}
+
 			__result = new SimpleEnumerator() { enumerator = __result, postfixAction = postfixAction }.GetEnumerator();
 		}
 	}
