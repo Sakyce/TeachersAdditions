@@ -274,7 +274,7 @@ namespace Additions.Characters
 				
 				TargetPosition(door.transform.position);
             }
-            if (ec.notebookTotal >= 7 && Mod.Manager.gameManager.foundNotebooks >= ec.notebookTotal/2)
+            if (ec.notebookTotal >= 8 && Mod.Manager.gameManager.foundNotebooks >= ec.notebookTotal/2)
                 TriggerWrath();
         }
         public override void WrongMathMachineAnswer()
