@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,12 +8,12 @@ namespace Additions.Characters
 {
 	public class Foxo : Teacher
 	{
-        private const float slapSpeed = 100f;
-        private const float slapDuration = 0.13f;
-        private const float wrathSlapSpeed = slapSpeed * 5f;
-        private const float wrathSlapDuration = slapDuration / 5f * 1.05f;
+		private const float slapSpeed = 100f;
+		private const float slapDuration = 0.13f;
+		private const float wrathSlapSpeed = slapSpeed * 5f;
+		private const float wrathSlapDuration = slapDuration / 5f * 1.05f;
 
-        static float minimumSlapDelay = 0.4f;
+		static float minimumSlapDelay = 0.4f;
 		static float decreasePerNotebook = 0.25f;
 		private float extraAnger = 0f;
 		private bool fireExtinguisherUsed = false;
@@ -39,15 +38,15 @@ namespace Additions.Characters
 				AssetManager.LoadSprite("foxo/FoxoSlap_4.png", PIXEL_PER_UNIT),
 			};
 
-            // Wrath foxo :(
-            public static Sprite[] wrath = new Sprite[3] {
-                AssetManager.LoadSprite("foxo/wrath3.png", PIXEL_PER_UNIT),
-                AssetManager.LoadSprite("foxo/wrath2.png", PIXEL_PER_UNIT),
-                AssetManager.LoadSprite("foxo/wrath1.png", PIXEL_PER_UNIT),
-            };
+			// Wrath foxo :(
+			public static Sprite[] wrath = new Sprite[3] {
+								AssetManager.LoadSprite("foxo/wrath3.png", PIXEL_PER_UNIT),
+								AssetManager.LoadSprite("foxo/wrath2.png", PIXEL_PER_UNIT),
+								AssetManager.LoadSprite("foxo/wrath1.png", PIXEL_PER_UNIT),
+						};
 
-            // loader
-            public static bool waveLoaded = false;
+			// loader
+			public static bool waveLoaded = false;
 			public static void LoadWave()
 			{
 				if (waveLoaded) return;
@@ -62,13 +61,13 @@ namespace Additions.Characters
 			public static SoundObject ding = AssetManager.LoadSoundObject("foxo/ding.wav", AudioType.WAV);
 			public static SoundObject school = AssetManager.LoadSoundObject("foxo/school2.wav", AudioType.WAV, soundType: SoundType.Music);
 			public static SoundObject hellothere = AssetManager.LoadSoundObject("foxo/hellothere.wav", AudioType.WAV, soundType: SoundType.Voice);
-            public static SoundObject slap = AssetManager.LoadSoundObject("foxo/slap.wav", AudioType.WAV, "SLAP!");
-            public static SoundObject slap2 = AssetManager.LoadSoundObject("foxo/slap2.wav", AudioType.WAV, "...");
-            public static SoundObject scare = AssetManager.LoadSoundObject("foxo/scare.wav", AudioType.WAV);
+			public static SoundObject slap = AssetManager.LoadSoundObject("foxo/slap.wav", AudioType.WAV, "SLAP!");
+			public static SoundObject slap2 = AssetManager.LoadSoundObject("foxo/slap2.wav", AudioType.WAV, "...");
+			public static SoundObject scare = AssetManager.LoadSoundObject("foxo/scare.wav", AudioType.WAV);
 			public static SoundObject jump = AssetManager.LoadSoundObject("foxo/boing.wav", AudioType.WAV);
-            public static SoundObject scream = AssetManager.LoadSoundObject("foxo/scream.wav", AudioType.WAV);
-            public static SoundObject wrath = AssetManager.LoadSoundObject("foxo/wrath.wav", AudioType.WAV);
-            public static SoundObject[] praises = new SoundObject[] {
+			public static SoundObject scream = AssetManager.LoadSoundObject("foxo/scream.wav", AudioType.WAV);
+			public static SoundObject wrath = AssetManager.LoadSoundObject("foxo/wrath.wav", AudioType.WAV);
+			public static SoundObject[] praises = new SoundObject[] {
 				AssetManager.LoadSoundObject("foxo/praise1.wav", AudioType.WAV),
 				AssetManager.LoadSoundObject("foxo/praise2.wav", AudioType.WAV)
 			};
@@ -96,17 +95,17 @@ namespace Additions.Characters
 			if (isWrath)
 			{
 				audMan.PlaySingle(Sounds.slap2);
-                for (int i = 0; i < 3; i++)
-                {
-                    SetSprite(Sprites.wrath[i]);
-                    var time = 0.1f;
-                    while (time > 0)
-                    {
-                        time -= Time.deltaTime * ec.NpcTimeScale;
-                        yield return null;
-                    }
-                }
-                yield break;
+				for (int i = 0; i < 3; i++)
+				{
+					SetSprite(Sprites.wrath[i]);
+					var time = 0.1f;
+					while (time > 0)
+					{
+						time -= Time.deltaTime * ec.NpcTimeScale;
+						yield return null;
+					}
+				}
+				yield break;
 			}
 
 			audMan.PlaySingle(Sounds.slap);
@@ -127,7 +126,7 @@ namespace Additions.Characters
 			StartCoroutine(PlaySlap());
 			navigator.SetSpeed((isWrath ? wrathSlapSpeed : slapSpeed) * ec.NpcTimeScale);
 			TargetPlayer(players[0].transform.position);
-			var time = isWrath? wrathSlapDuration : slapDuration;
+			var time = isWrath ? wrathSlapDuration : slapDuration;
 			while (time > 0)
 			{
 				time -= Time.deltaTime * ec.NpcTimeScale;
@@ -143,16 +142,16 @@ namespace Additions.Characters
 			{
 				yield break;
 			}
-            isAngry = true;
-            SetSprite(Sprites.stare);
+			isAngry = true;
+			SetSprite(Sprites.stare);
 			Singleton<MusicManager>.Instance.StopMidi();
 			ec.audMan.FlushQueue(true);
 			audMan.FlushQueue(true);
 			ec.audMan.PlaySingle(Sounds.fear);
-            BeginSpoopMode();
+			BeginSpoopMode();
 
-            yield return new WaitForSeconds(13f);
-			
+			yield return new WaitForSeconds(13f);
+
 			ec.audMan.PlaySingle(Sounds.ding);
 			SetKillable(true, Sounds.scare);
 			StartCoroutine(SlapLoop());
@@ -162,7 +161,7 @@ namespace Additions.Characters
 		{
 			var time = minimumSlapDelay + decreasePerNotebook * ec.notebookTotal - Mod.Manager.gameManager.FoundNotebooks * decreasePerNotebook - extraAnger;
 			if (isWrath) time *= 1.3f;
-            while (time > 0)
+			while (time > 0)
 			{
 				time -= Time.deltaTime * ec.NpcTimeScale;
 				yield return null;
@@ -219,65 +218,66 @@ namespace Additions.Characters
 			ec.audMan.PlaySingle(Sounds.school);
 			DontSpawnNPCS = false;
 			StartCoroutine(PlayWave());
-        }
+		}
 		private IEnumerator FireExtinguisherSequence()
 		{
 			audMan.FlushQueue(true);
 			audMan.PlaySingle(Sounds.scream);
-            SetKillable(false);
-            var time = 16f;
+			SetKillable(false);
+			var time = 16f;
 			var flag = false;
 			while (time > 0)
 			{
 				time -= Time.deltaTime;
 				flag = !flag;
-				SetSprite(flag ? Sprites.sprayed[0] : Sprites.sprayed[1]) ;
+				SetSprite(flag ? Sprites.sprayed[0] : Sprites.sprayed[1]);
 				yield return null;
 			}
-            SetKillable(true, Sounds.scare);
-            StartCoroutine(SlapLoop());
+			SetKillable(true, Sounds.scare);
+			StartCoroutine(SlapLoop());
 			yield break;
 		}
 		private void FireExtinguisher()
 		{
 			if (fireExtinguisherUsed) return;
-            StopAllCoroutines();
+			StopAllCoroutines();
 			StartCoroutine(FireExtinguisherSequence());
 		}
 		public void TriggerWrath()
 		{
 			if (!isWrath)
 			{
-                isWrath = true;
+				isWrath = true;
 				ec.audMan.PlaySingle(Sounds.wrath);
-				foreach (NPC npc in ec.npcs.ToList()) {
-                    if (npc != this)
-                    {
-                        npc.Despawn();
-                    }
-                }
-            }
-        }
-        public override void NotebookCollected()
-        {
-            base.NotebookCollected();
-            if (Singleton<CoreGameManager>.Instance.currentMode == Mode.Free)
-                return;
-            if (!isAngry)
-            {
-                StopAllCoroutines();
-                StartCoroutine(GetMad());
+				foreach (NPC npc in ec.npcs.ToList())
+				{
+					if (npc != this)
+					{
+						npc.Despawn();
+					}
+				}
+			}
+		}
+		public override void NotebookCollected()
+		{
+			base.NotebookCollected();
+			if (Singleton<CoreGameManager>.Instance.currentMode == Mode.Free)
+				return;
+			if (!isAngry)
+			{
+				StopAllCoroutines();
+				StartCoroutine(GetMad());
 				var (door, _) = TeleportToNearestDoor();
 
-                navigator.SetSpeed(100f);
-                navigator.maxSpeed = 100f;
-				
+				navigator.SetSpeed(100f);
+				navigator.maxSpeed = 100f;
+
 				TargetPosition(door.transform.position);
-            }
-            if (ec.notebookTotal >= 8 && Mod.Manager.gameManager.foundNotebooks >= ec.notebookTotal/2)
-                TriggerWrath();
-        }
-        public override void WrongMathMachineAnswer()
+			}
+			if (ec.notebookTotal >= 8 && Mod.Manager.gameManager.foundNotebooks >= ec.notebookTotal / 2)
+				TriggerWrath();
+		}
+		public override void WrongMathMachineAnswer()
 		{
 			extraAnger += 0.0075f;
 		}
@@ -289,11 +289,11 @@ namespace Additions.Characters
 		}
 		public override void PlayerExitedSpawn()
 		{
-        }
+		}
 		public override void ChalkEraserUsed(Vector3 position)
 		{
 			if (Vector3.Distance(position, transform.position) <= 60f)
-                FireExtinguisher();
-        }
+				FireExtinguisher();
+		}
 	}
 }
