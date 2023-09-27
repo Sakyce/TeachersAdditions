@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using TeachersAdditions.Components;
 using UnityEngine;
 using Utility;
@@ -11,21 +13,31 @@ namespace Additions.Characters
 		private bool isInSpoopMode = false;
 		private BaldiHearing hearing;
 
+		private bool enoughPlayed;
+
+		private List<NullPhrase> genericPhrases = new List<NullPhrase>();
+
+		private bool hahaPlayed = false;
+		private bool hidePlayed = false;
+		private bool nothingPlayed = false;
+		private bool scaryPlayed = false;
+		private bool stopPlayed = false;
+		private bool wherePlayed = false;
+		private bool boredPlayed = false;
+
+		private SoundObject audEnough = AssetManager.LoadSoundObject("null/enough.wav", AudioType.WAV);
+		private SoundObject audHaha;
+		private SoundObject audHide = AssetManager.LoadSoundObject("null/nowhereyoucanhide.wav", AudioType.WAV);
+		private SoundObject audNothing = AssetManager.LoadSoundObject("null/nothing.wav", AudioType.WAV);
+		private SoundObject audScary;
+		private SoundObject audStop;
+		private SoundObject audWhere = AssetManager.LoadSoundObject("null/whereveryouare.wav", AudioType.WAV);
+		private SoundObject audBored = AssetManager.LoadSoundObject("null/bored.wav", AudioType.WAV);
+
 		public static class Sprites
 		{
 			public static Sprite baseSprite = AssetManager.LoadSprite("null.png", PIXEL_PER_UNIT);
 		}
-		public static class Sounds
-		{
-			public static SoundObject bored = AssetManager.LoadSoundObject("null/bored.wav", AudioType.WAV);
-			public static SoundObject enough = AssetManager.LoadSoundObject("null/enough.wav", AudioType.WAV);
-			public static SoundObject nothing = AssetManager.LoadSoundObject("null/nothing.wav", AudioType.WAV);
-			public static SoundObject nowhere = AssetManager.LoadSoundObject("null/nowhereyoucanhide.wav", AudioType.WAV);
-			public static SoundObject wherever = AssetManager.LoadSoundObject("null/whereveryouare.wav", AudioType.WAV);
-
-			public static SoundObject scare = AssetManager.LoadSoundObject("foxo/scare.wav", AudioType.WAV);
-		}
-
 		private IEnumerator Slap()
 		{
 			navigator.SetSpeed(100f * ec.NpcTimeScale);
@@ -67,6 +79,9 @@ namespace Additions.Characters
 		public override void DestinationEmpty()
 		{
 			base.DestinationEmpty();
+			if (navigator.passableObstacles.Contains(PassableObstacle.Window))
+				navigator.passableObstacles.Clear();
+
 			if (!controlOverride && !returningFromDetour)
 			{
 				if (hearing.HasSoundLocation())
@@ -75,6 +90,132 @@ namespace Additions.Characters
 					return;
 				}
 				WanderRandom();
+			}
+		}
+		protected override void OnTriggerEnter(Collider other)
+		{
+			base.OnTriggerEnter(other);
+
+			if (navigator.passableObstacles.Contains(PassableObstacle.Window) && other.CompareTag("Window"))
+			{
+				other.GetComponent<Window>().Break(false);
+				SpeechCheck(NullPhrase.Hide, 0.04f);
+			}
+		}
+
+		private void SpeechCheck(NullPhrase phrase, float chance)
+		{
+			if (!controlOverride)
+			{
+				switch (phrase)
+				{
+					case NullPhrase.Enough:
+						if (!enoughPlayed && !audMan.IsPlaying && UnityEngine.Random.Range(0f, 1f) <= chance)
+						{
+							audMan.QueueAudio(audEnough);
+							enoughPlayed = true;
+						}
+						break;
+					/*case NullPhrase.Haha:
+						if (!hahaPlayed && !audMan.IsPlaying && UnityEngine.Random.Range(0f, 1f) <= chance)
+						{
+							audMan.QueueAudio(audHaha);
+							hahaPlayed = true;
+							return;
+						}
+						break;*/
+					case NullPhrase.Hide:
+						if (!hidePlayed && !audMan.IsPlaying && UnityEngine.Random.Range(0f, 1f) <= chance)
+						{
+							audMan.QueueAudio(audHide);
+							hidePlayed = true;
+							return;
+						}
+						break;
+					case NullPhrase.Nothing:
+						if (!nothingPlayed && !audMan.IsPlaying && UnityEngine.Random.Range(0f, 1f) <= chance)
+						{
+							audMan.QueueAudio(audNothing);
+							nothingPlayed = true;
+							return;
+						}
+						break;
+					case NullPhrase.Scary:
+					case NullPhrase.Stop:
+					case NullPhrase.Where:
+						break;
+					case NullPhrase.Generic:
+						if (UnityEngine.Random.Range(0f, 1f) <= chance)
+						{
+							List<NullPhrase> list = new List<NullPhrase>(genericPhrases);
+							for (int i = 0; i < list.Count; i++)
+							{
+								NullPhrase value = list[i];
+								int index = UnityEngine.Random.Range(i, list.Count);
+								list[i] = list[index];
+								list[index] = value;
+							}
+							while (list.Count > 0)
+							{
+								NullPhrase nullPhrase = list[UnityEngine.Random.Range(0, list.Count)];
+								if (nullPhrase != NullPhrase.Bored)
+								{
+									switch (nullPhrase)
+									{
+										/*case NullPhrase.Scary:
+											if (!scaryPlayed /*&& gameTime >= 240f * /&& !looker.PlayerInSight)
+											{
+												audMan.QueueAudio(audScary);
+												scaryPlayed = true;
+												genericPhrases.Remove(NullPhrase.Scary);
+												return;
+											}
+											break;*/
+										/*case NullPhrase.Stop:
+											if (!stopPlayed / *&& NullNPC.attempts >= 5 && gameTime >= 60f * /)
+											{
+												audMan.QueueAudio(audStop);
+												stopPlayed = true;
+												genericPhrases.Remove(NullPhrase.Stop);
+												return;
+											}
+											break;*/
+										case NullPhrase.Where:
+											if (!wherePlayed /*&& hadTargetTime >= 30f && gameTime >= 60f*/)
+											{
+												audMan.QueueAudio(audWhere);
+												wherePlayed = true;
+												genericPhrases.Remove(NullPhrase.Where);
+												return;
+											}
+											break;
+									}
+								}
+								else if (!boredPlayed /*&& gameTime >= 300f && NullNPC.timeSinceExcitingThing >= 60f*/)
+								{
+									audMan.QueueAudio(audBored);
+									boredPlayed = true;
+									genericPhrases.Remove(NullPhrase.Bored);
+									return;
+								}
+								list.Remove(nullPhrase);
+							}
+							return;
+						}
+						break;
+					default:
+						return;
+				}
+			}
+		}
+
+		public override void PlayerSighted(PlayerManager player)
+		{
+			base.PlayerSighted(player);
+			if (!navigator.passableObstacles.Contains(PassableObstacle.Window))
+			{
+				navigator.passableObstacles.Add(PassableObstacle.Window);
+				navigator.CheckPath();
 			}
 		}
 		public override void Awake()
@@ -97,9 +238,23 @@ namespace Additions.Characters
 				return;
 			isInSpoopMode = true;
 			spriteRenderer.color = Color.white;
-			SetKillable(true, Sounds.scare);
+			SetKillable(true, Foxo.Sounds.scare);
 			StopAllCoroutines();
 			StartCoroutine(SlapDelay());
 		}
 	}
+
+	public enum NullPhrase
+	{
+		Bored,
+		Enough,
+		Haha,
+		Hide,
+		Nothing,
+		Scary,
+		Stop,
+		Where,
+		Generic
+	}
+
 }
