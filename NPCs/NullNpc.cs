@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections;
+using TeachersAdditions.Components;
 using UnityEngine;
 using Utility;
 
@@ -11,9 +9,8 @@ namespace Additions.Characters
 	{
 		static readonly float PIXEL_PER_UNIT = 26f;
 		private bool isInSpoopMode = false;
-		private bool noIndicator;
-		private readonly Vector3[] soundLocations = new Vector3[128];
-		private int currentSoundVal;
+		private BaldiHearing hearing;
+
 		public static class Sprites
 		{
 			public static Sprite baseSprite = AssetManager.LoadSprite("null.png", PIXEL_PER_UNIT);
@@ -29,31 +26,10 @@ namespace Additions.Characters
 			public static SoundObject scare = AssetManager.LoadSoundObject("foxo/scare.wav", AudioType.WAV);
 		}
 
-		public void ClearSoundLocations()
-		{
-			for (int i = 0; i < soundLocations.Length; i++)
-			{
-				soundLocations[i] = Vector3.zero;
-			}
-			currentSoundVal = 0;
-		}
-		private bool HasSoundLocation()
-		{
-			for (int i = 0; i < soundLocations.Length; i++)
-			{
-				if (soundLocations[i] != Vector3.zero)
-				{
-					return true;
-				}
-			}
-			currentSoundVal = 0;
-			return false;
-		}
-
 		private IEnumerator Slap()
 		{
 			navigator.SetSpeed(100f * ec.NpcTimeScale);
-			
+
 			var time = 0.3f;
 			while (time > 0)
 			{
@@ -78,9 +54,34 @@ namespace Additions.Characters
 			StartCoroutine(Slap());
 			yield break;
 		}
+		public void Update()
+		{
+			if (!controlOverride && !navigator.HasDestination)
+				if (hearing.HasSoundLocation())
+				{
+					hearing.UpdateSoundTarget();
+				}
+				else
+					WanderRandom();
+		}
+		public override void DestinationEmpty()
+		{
+			base.DestinationEmpty();
+			if (!controlOverride && !returningFromDetour)
+			{
+				if (hearing.HasSoundLocation())
+				{
+					hearing.UpdateSoundTarget();
+					return;
+				}
+				WanderRandom();
+			}
+		}
 		public override void Awake()
 		{
 			base.Awake();
+			hearing = BaldiHearing.Create(gameObject, this);
+			hearing.SoundTargetChanged += (BaldiHearing sender, Vector3 pos) => TargetPlayer(pos);
 			audMan.audioDevice.maxDistance *= 6;
 			audMan.volumeModifier = 0.8f;
 			transform.Find("SpriteBase").localPosition += new Vector3(0, -0.8f + 0.9f, 0);
