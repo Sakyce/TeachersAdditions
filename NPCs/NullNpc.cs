@@ -13,11 +13,10 @@ namespace Additions.Characters
 		private bool isInSpoopMode = false;
 		private BaldiHearing hearing;
 
-		private bool enoughPlayed;
-
 		private List<NullPhrase> genericPhrases = new List<NullPhrase>();
 
-		private bool hahaPlayed = false;
+		private bool enoughPlayed = false;
+        private bool hahaPlayed = false;
 		private bool hidePlayed = false;
 		private bool nothingPlayed = false;
 		private bool scaryPlayed = false;
@@ -25,14 +24,17 @@ namespace Additions.Characters
 		private bool wherePlayed = false;
 		private bool boredPlayed = false;
 
-		private SoundObject audEnough = AssetManager.LoadSoundObject("null/enough.wav", AudioType.WAV);
-		private SoundObject audHaha;
-		private SoundObject audHide = AssetManager.LoadSoundObject("null/nowhereyoucanhide.wav", AudioType.WAV);
-		private SoundObject audNothing = AssetManager.LoadSoundObject("null/nothing.wav", AudioType.WAV);
-		private SoundObject audScary;
-		private SoundObject audStop;
-		private SoundObject audWhere = AssetManager.LoadSoundObject("null/whereveryouare.wav", AudioType.WAV);
-		private SoundObject audBored = AssetManager.LoadSoundObject("null/bored.wav", AudioType.WAV);
+		public static class Sounds
+		{
+            public static SoundObject audEnough = AssetManager.LoadSoundObject("null/enough.wav", AudioType.WAV);
+            public static SoundObject audHaha;
+            public static SoundObject audHide = AssetManager.LoadSoundObject("null/nowhereyoucanhide.wav", AudioType.WAV);
+            public static SoundObject audNothing = AssetManager.LoadSoundObject("null/nothing.wav", AudioType.WAV);
+            public static SoundObject audScary;
+            public static SoundObject audStop;
+            public static SoundObject audWhere = AssetManager.LoadSoundObject("null/whereveryouare.wav", AudioType.WAV);
+            public static SoundObject audBored = AssetManager.LoadSoundObject("null/bored.wav", AudioType.WAV);
+        }
 
 		public static class Sprites
 		{
@@ -42,10 +44,9 @@ namespace Additions.Characters
 		{
 			navigator.SetSpeed(100f * ec.NpcTimeScale);
 
-			var time = 0.3f;
+			var time = 0.2f;
 			while (time > 0)
 			{
-				TargetPlayer(players[0].transform.position);
 				time -= Time.deltaTime * ec.NpcTimeScale;
 				yield return null;
 			}
@@ -57,7 +58,7 @@ namespace Additions.Characters
 		}
 		private IEnumerator SlapDelay()
 		{
-			var time = 1.5f;
+			var time = 1.3f;
 			while (time > 0)
 			{
 				time -= Time.deltaTime * ec.NpcTimeScale;
@@ -68,7 +69,8 @@ namespace Additions.Characters
 		}
 		public void Update()
 		{
-			if (!controlOverride && !navigator.HasDestination)
+            if (!isInSpoopMode) return;
+            if (!controlOverride && !navigator.HasDestination)
 				if (hearing.HasSoundLocation())
 				{
 					hearing.UpdateSoundTarget();
@@ -78,7 +80,8 @@ namespace Additions.Characters
 		}
 		public override void DestinationEmpty()
 		{
-			base.DestinationEmpty();
+            if (!isInSpoopMode) return;
+            base.DestinationEmpty();
 			if (navigator.passableObstacles.Contains(PassableObstacle.Window))
 				navigator.passableObstacles.Clear();
 
@@ -105,14 +108,15 @@ namespace Additions.Characters
 
 		private void SpeechCheck(NullPhrase phrase, float chance)
 		{
-			if (!controlOverride)
+            if (!isInSpoopMode) return;
+            if (!controlOverride)
 			{
 				switch (phrase)
 				{
 					case NullPhrase.Enough:
 						if (!enoughPlayed && !audMan.IsPlaying && UnityEngine.Random.Range(0f, 1f) <= chance)
 						{
-							audMan.QueueAudio(audEnough);
+							audMan.QueueAudio(Sounds.audEnough);
 							enoughPlayed = true;
 						}
 						break;
@@ -127,7 +131,7 @@ namespace Additions.Characters
 					case NullPhrase.Hide:
 						if (!hidePlayed && !audMan.IsPlaying && UnityEngine.Random.Range(0f, 1f) <= chance)
 						{
-							audMan.QueueAudio(audHide);
+							audMan.QueueAudio(Sounds.audHide);
 							hidePlayed = true;
 							return;
 						}
@@ -135,7 +139,7 @@ namespace Additions.Characters
 					case NullPhrase.Nothing:
 						if (!nothingPlayed && !audMan.IsPlaying && UnityEngine.Random.Range(0f, 1f) <= chance)
 						{
-							audMan.QueueAudio(audNothing);
+							audMan.QueueAudio(Sounds.audNothing);
 							nothingPlayed = true;
 							return;
 						}
@@ -183,7 +187,7 @@ namespace Additions.Characters
 										case NullPhrase.Where:
 											if (!wherePlayed /*&& hadTargetTime >= 30f && gameTime >= 60f*/)
 											{
-												audMan.QueueAudio(audWhere);
+												audMan.QueueAudio(Sounds.audWhere);
 												wherePlayed = true;
 												genericPhrases.Remove(NullPhrase.Where);
 												return;
@@ -193,7 +197,7 @@ namespace Additions.Characters
 								}
 								else if (!boredPlayed /*&& gameTime >= 300f && NullNPC.timeSinceExcitingThing >= 60f*/)
 								{
-									audMan.QueueAudio(audBored);
+									audMan.QueueAudio(Sounds.audBored);
 									boredPlayed = true;
 									genericPhrases.Remove(NullPhrase.Bored);
 									return;
@@ -208,10 +212,20 @@ namespace Additions.Characters
 				}
 			}
 		}
-
-		public override void PlayerSighted(PlayerManager player)
+        public override void PlayerInSight(PlayerManager player)
+        {
+            if (!isInSpoopMode) return;
+            if (hearing == null) return;
+            hearing.ClearSoundLocations();
+            hearing.noIndicator = true;
+            hearing.Hear(player.transform.position, 127);
+            hearing.noIndicator = false;
+        }
+        public override void PlayerSighted(PlayerManager player)
 		{
-			base.PlayerSighted(player);
+            if (!isInSpoopMode)
+                return;
+            base.PlayerSighted(player);
 			if (!navigator.passableObstacles.Contains(PassableObstacle.Window))
 			{
 				navigator.passableObstacles.Add(PassableObstacle.Window);
@@ -221,8 +235,9 @@ namespace Additions.Characters
 		public override void Awake()
 		{
 			base.Awake();
-			hearing = BaldiHearing.Create(gameObject, this);
-			hearing.SoundTargetChanged += (BaldiHearing sender, Vector3 pos) => TargetPlayer(pos);
+            hearing = BaldiHearing.Create(gameObject, this);
+            hearing.noIndicator = true;
+            hearing.SoundTargetChanged += (BaldiHearing sender, Vector3 pos) => { TargetPlayer(pos);  };
 			audMan.audioDevice.maxDistance *= 6;
 			audMan.volumeModifier = 0.8f;
 			transform.Find("SpriteBase").localPosition += new Vector3(0, -0.8f + 0.9f, 0);
@@ -236,13 +251,20 @@ namespace Additions.Characters
 				return;
 			if (isInSpoopMode)
 				return;
-			isInSpoopMode = true;
+			hearing.noIndicator = false;
+            isInSpoopMode = true;
 			spriteRenderer.color = Color.white;
 			SetKillable(true, Foxo.Sounds.scare);
 			StopAllCoroutines();
 			StartCoroutine(SlapDelay());
 		}
-	}
+
+        public override void Hear(Vector3 position, int value)
+        {
+            base.Hear(position, value);
+			hearing.Hear(position, value);
+        }
+    }
 
 	public enum NullPhrase
 	{

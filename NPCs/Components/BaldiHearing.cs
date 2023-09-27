@@ -11,7 +11,7 @@ namespace TeachersAdditions.Components
 
 		private readonly Vector3[] soundLocations = new Vector3[128];
 		private int currentSoundVal = 0;
-		private bool noIndicator = false;
+		public bool noIndicator = false;
 		public bool targetingSound = false;
 
 		public delegate void SoundTargetChangedHandler(BaldiHearing sender, Vector3 Position);
