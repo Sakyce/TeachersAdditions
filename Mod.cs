@@ -1,7 +1,10 @@
 ﻿using Additions.Characters;
 using BepInEx;
 using HarmonyLib;
+using MidiPlayerTK;
 using System;
+using System.Collections;
+using System.Reflection;
 using UnityEngine;
 
 namespace Additions
@@ -11,6 +14,7 @@ namespace Additions
 	{
 		public void Awake()
 		{
+			instance = this;
 			Harmony harmony = new Harmony("sakyce.baldiplus.teachersadditions");
 			harmony.PatchAll();
 		}
@@ -18,7 +22,22 @@ namespace Additions
 		{
 			return 1;
 		}
-		public static Manager Manager;
-		public static Teachers NextTeacher;
+		public void BuildPosterAtAndWaitForTeacher(TileController tile, Direction dir)
+		{
+			StartCoroutine(WaitForTeacherAsync(tile, dir));
+		}
+		public IEnumerator WaitForTeacherAsync(TileController tile, Direction dir)
+		{
+			while (Mod.Manager == null) yield return null;
+			while (Mod.Manager.teacher == null) yield return null;
+			var teacher = Mod.Manager.teacher;
+			if (teacher.Poster == null) yield break;
+            teacher.ec.BuildPoster(teacher.Poster, tile, dir);
+            yield break;
+        }
+        public static Mod instance;
+        public static Manager Manager;
+        public static Teachers NextTeacher;
+		
 	}
 }

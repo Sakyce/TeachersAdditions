@@ -93,6 +93,13 @@ namespace Additions.Characters
 			TargetPlayer(players[0].transform.position);
 			return (nearestDoor, side);
 		}
+
+		public void CreatePoster(Texture2D texture)
+		{
+			poster = ScriptableObject.CreateInstance<PosterObject>();
+
+            poster.baseTexture = texture;
+		}
 	}
 	public enum Teachers
 	{
